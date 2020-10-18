@@ -20,5 +20,9 @@ io-kit-sys = "0.1.0"
 mach = "^0.3.2"
 thiserror = "^1"
 
+[features]
+# For Intel graphics cards reduce replay delay time to not cause kernel panic
+intel-card = []
+
 [badges]
 maintenance = { status = "actively-developed" }

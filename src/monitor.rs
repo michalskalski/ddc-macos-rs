@@ -14,11 +14,17 @@ use ddc::{
     Command, CommandResult, DdcCommand, DdcCommandMarker, DdcHost, ErrorCode, I2C_ADDRESS_DDC_CI, SUB_ADDRESS_DDC_CI,
 };
 use io_kit_sys::ret::kIOReturnSuccess;
-use io_kit_sys::types::{io_service_t, kMillisecondScale, IOItemCount};
+use io_kit_sys::types::{io_service_t, kMillisecondScale, kNanosecondScale, IOItemCount};
 use io_kit_sys::IORegistryEntryCreateCFProperties;
 use mach::kern_return::{kern_return_t, KERN_FAILURE};
 use std::{fmt, iter};
 use thiserror::Error;
+
+#[cfg(feature = "intel-card")]
+const DELAY_RESPONSE: u64 = 1 * kNanosecondScale as u64;
+
+#[cfg(not(feature = "intel-card"))]
+const DELAY_RESPONSE: u64 = 40 * kMillisecondScale as u64;
 
 /// An error that can occur during DDC/CI communication with a monitor
 #[derive(Error, Debug)]
@@ -269,7 +275,7 @@ impl DdcCommand for Monitor {
         request.sendTransactionType = kIOI2CSimpleTransactionType;
         request.sendBuffer = &request_data as *const _ as usize;
         request.sendBytes = (command_length + 3) as u32;
-        request.minReplyDelay = C::DELAY_RESPONSE_MS * kMillisecondScale as u64;
+        request.minReplyDelay = DELAY_RESPONSE;
         request.result = -1;
 
         request.replyTransactionType = self.get_response_transaction_type(command);
